@@ -9,20 +9,25 @@ A premium, animated, full-stack interactive simulator for FIFO, LRU, and Optimal
 ## 🚀 Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 2. Start the Server
+
 ```bash
 npm start
 ```
+
 Or with auto-reload during development:
+
 ```bash
 npm run dev   # requires: npm install -g nodemon
 ```
 
 ### 3. Open in Browser
+
 ```
 http://localhost:3000
 ```
@@ -48,14 +53,18 @@ page-replacement-simulator/
 ## 🔌 API Endpoints
 
 ### `POST /api/simulate`
+
 Run a single algorithm step-by-step.
+
 ```json
 Request:  { "pages": [7,0,1,2,0,3], "frames": 3, "algorithm": "fifo" }
 Response: { "steps": [...], "faults": 9, "hits": 3 }
 ```
 
 ### `POST /api/compare`
+
 Compare all three algorithms at once.
+
 ```json
 Request:  { "pages": [7,0,1,2,0,3], "frames": 3 }
 Response: { "results": { "fifo": {...}, "lru": {...}, "optimal": {...} }, "winner": "optimal" }
@@ -87,13 +96,13 @@ Response: { "results": { "fifo": {...}, "lru": {...}, "optimal": {...} }, "winne
 
 ## ⌨️ Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `→` | Step Forward |
-| `←` | Step Back |
-| `Space` | Play / Pause |
-| `R` | Run Simulation |
+| Key     | Action         |
+| ------- | -------------- |
+| `→`     | Step Forward   |
+| `←`     | Step Back      |
+| `Space` | Play / Pause   |
+| `R`     | Run Simulation |
 
 ---
 
-Built with ❤️ for LPU 2028 batch 🚀
+Built with ❤️ from LPU 🚀
