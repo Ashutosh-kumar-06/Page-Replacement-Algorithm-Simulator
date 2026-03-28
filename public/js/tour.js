@@ -1,7 +1,4 @@
-/**
- * tour.js — First-visit guided tour
- * Uses no App state — fully self-contained.
- */
+
 
 const TOUR_STEPS = [
   {
@@ -55,7 +52,7 @@ const TOUR_STEPS = [
 ];
 
 let tourStep = 0;
-let lastHighlightedElement = null;
+let _tourLastEl = null; 
 
 function startTour() {
   tourStep = 0;
@@ -75,11 +72,9 @@ function showTourStep(i) {
   const card = document.getElementById("tour-card");
   card.className = "tour-card-anim";
 
-  // Restore previous element's z-index
-  if (lastHighlightedElement) {
-    lastHighlightedElement.style.zIndex =
-      lastHighlightedElement.tourOriginalZIndex || "auto";
-    lastHighlightedElement = null;
+  if (_tourLastEl) {
+    _tourLastEl.style.zIndex = _tourLastEl._tourOrigZ || "";
+    _tourLastEl = null;
   }
 
   if (!step.target) {
@@ -95,17 +90,22 @@ function showTourStep(i) {
     return;
   }
 
-  // Highlight element by elevating its z-index above the overlay
-  el.tourOriginalZIndex = el.style.zIndex || "auto";
+  el._tourOrigZ = el.style.zIndex || "";
   el.style.zIndex = "8001";
-  lastHighlightedElement = el;
+  _tourLastEl = el;
 
   const rect = el.getBoundingClientRect(),
     pad = 14;
+
   document.getElementById("tour-spotlight").style.cssText =
-    `display:block;position:fixed;left:${rect.left - pad}px;top:${rect.top - pad}px;` +
-    `width:${rect.width + pad * 2}px;height:${rect.height + pad * 2}px;border-radius:12px;` +
-    `box-shadow:0 0 0 9999px rgba(0,0,0,.78),0 0 0 2px rgba(0,200,255,.85),0 0 28px rgba(0,200,255,.4);transition:all .35s ease;`;
+    `display:block;position:fixed;` +
+    `left:${rect.left - pad}px;top:${rect.top - pad}px;` +
+    `width:${rect.width + pad * 2}px;height:${rect.height + pad * 2}px;` +
+    `border-radius:12px;` +
+    `box-shadow:0 0 0 9999px rgba(0,0,0,.78),` +
+    `0 0 0 2px rgba(0,200,255,.85),` +
+    `0 0 28px rgba(0,200,255,.4);` +
+    `transition:all .35s ease;`;
 
   const cw = 350,
     ch = 200;
@@ -132,18 +132,22 @@ function tourNext() {
   }
   tourStep++;
   const t = TOUR_STEPS[tourStep].target;
+
   if (t) {
     const el = document.querySelector(t);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (el) {
+  
+      el.scrollIntoView({ behavior: "instant", block: "center" });
+    }
   }
-  setTimeout(() => showTourStep(tourStep), t ? 380 : 0);
+  setTimeout(() => showTourStep(tourStep), 60);
 }
 
 function tourSkip() {
-  if (lastHighlightedElement) {
-    lastHighlightedElement.style.zIndex =
-      lastHighlightedElement.tourOriginalZIndex || "auto";
-    lastHighlightedElement = null;
+  // Clean up any elevated element before hiding
+  if (_tourLastEl) {
+    _tourLastEl.style.zIndex = _tourLastEl._tourOrigZ || "";
+    _tourLastEl = null;
   }
   document.getElementById("tour-overlay").style.display = "none";
   localStorage.setItem("memos_tour_done", "1");
