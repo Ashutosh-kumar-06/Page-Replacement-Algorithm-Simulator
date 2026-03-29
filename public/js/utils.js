@@ -1,7 +1,7 @@
 window.App = {
   simData: null, // full result from /api/simulate
   currentStep: -1, // step index currently displayed (-1 = none)
-  selectedAlgo: "fifo", // 'fifo' | 'lru' | 'optimal'
+  selectedAlgo: "fifo",  // 'fifo' | 'lru' | 'optimal' | 'clock'
   tableVisible: true, // whether the step-trace table is shown
   isPlaying: false, // true while auto-play is running
   playInterval: null, // setInterval ID for auto-play
