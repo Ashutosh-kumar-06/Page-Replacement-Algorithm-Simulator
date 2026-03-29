@@ -178,30 +178,36 @@ function renderReasoning(step) {
 
   const isLRU     = App.selectedAlgo === 'lru';
   const isOptimal = App.selectedAlgo === 'optimal';
-  if (!isLRU && !isOptimal) { panel.style.display = 'none'; return; }
+  const isClock   = App.selectedAlgo === 'clock';
+  if (!isLRU && !isOptimal && !isClock) { panel.style.display = 'none'; return; }
 
   panel.style.display = 'block';
   main.textContent    = step.reason || '';
   frames.innerHTML    = '';
 
   step.frames.forEach((f, fi) => {
-    if (f === null) return;
-    const chip      = document.createElement('div');
-    const isEvicted = step.fault && step.replaceIdx === fi;
-    chip.className  = `reason-frame-chip ${isEvicted ? 'evicted' : 'kept'}`;
-    const evictTag  = isEvicted ? '<span style="opacity:.7">← evicted</span>' : '';
-
-    if (isLRU && step.lruAges) {
-      const age    = step.lruAges[fi];
-      const ageStr = age === 0 ? 'just used' : `${age} step${age !== 1 ? 's' : ''} ago`;
-      chip.innerHTML = `<span class="rfc-label">F${fi+1}&thinsp;P${f}</span><span class="rfc-val">${ageStr}</span>${evictTag}`;
-    } else if (isOptimal && step.nextUseAt) {
-      const nu    = step.nextUseAt[fi];
-      const nuStr = (!nu || nu >= 1e9) ? 'never again' : `step ${nu + 1}`;
-      chip.innerHTML = `<span class="rfc-label">F${fi+1}&thinsp;P${f}</span><span class="rfc-val">next@${nuStr}</span>${evictTag}`;
-    }
-    if (chip.innerHTML) frames.appendChild(chip);
-  });
+  if (f === null) return;
+  const chip      = document.createElement('div');
+  const isEvicted = step.fault && step.replaceIdx === fi;
+  chip.className  = `reason-frame-chip ${isEvicted ? 'evicted' : 'kept'}`;
+  const evictTag  = isEvicted ? '<span style="opacity:.7">← evicted</span>' : '';
+  
+  if (isLRU && step.lruAges) {
+    const age    = step.lruAges[fi];
+    const ageStr = age === 0 ? 'just used' : `${age} step${age !== 1 ? 's' : ''} ago`;
+    chip.innerHTML = `<span class="rfc-label">F${fi+1}&thinsp;P${f}</span><span class="rfc-val">${ageStr}</span>${evictTag}`;
+  } else if (isOptimal && step.nextUseAt) {
+    const nu    = step.nextUseAt[fi];
+    const nuStr = (!nu || nu >= 1e9) ? 'never again' : `step ${nu + 1}`;
+    chip.innerHTML = `<span class="rfc-label">F${fi+1}&thinsp;P${f}</span><span class="rfc-val">next@${nuStr}</span>${evictTag}`;
+  } else if (isClock && step.referenceBits) {
+    const bit    = step.referenceBits[fi];
+    const bitStr = bit === 1 ? 'bit=1 🟢 safe' : 'bit=0 🔴 evictable';
+    const isHand = step.handPosition === fi;
+    chip.innerHTML = `<span class="rfc-label">F${fi+1}&thinsp;P${f}</span><span class="rfc-val">${bitStr}${isHand ? ' 👈 hand' : ''}</span>${evictTag}`;
+  }
+  if (chip.innerHTML) frames.appendChild(chip);
+});
 }
 
 /* ── Reset ───────────────────────────────────────────────────────── */
