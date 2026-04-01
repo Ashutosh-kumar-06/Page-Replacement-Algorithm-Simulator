@@ -17,7 +17,6 @@
  *   npm run dev       → nodemon server.js (auto-restart on changes)
  *   Then open:        http://localhost:3000
  */
-
 const express  = require('express');
 const cors     = require('cors');
 const path     = require('path');
@@ -41,7 +40,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // POST /api/simulate — run one algorithm, get step-by-step result
 app.post('/api/simulate', simulateRoute);
 
-// POST /api/compare  — run all three algorithms, get side-by-side summary
+// POST /api/compare  — run all algorithms, get side-by-side summary
 app.post('/api/compare',  compareRoute);
 
 // ── Catch-all for the SPA root ─────────────────────────────────────
