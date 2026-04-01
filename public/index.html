@@ -44,14 +44,17 @@
         <span class="line2">Master Algorithms.</span>
       </h1>
       <p class="hero-sub">
-        Watch FIFO, LRU, Optimal, Clock, and LFU page replacement come alive with
-        frame-by-frame animation, live stats, and intelligent comparison.
+        Watch FIFO, LRU, Optimal, Clock, and LFU page replacement come alive
+        with frame-by-frame animation, live stats, and intelligent comparison.
       </p>
       <div class="hero-cta">
         <button class="btn-primary" onclick="scrollToSection('#simulator')">
           ⚡ Start Simulation
         </button>
-        <button class="btn-secondary" onclick="scrollToSection('#how-it-works')">
+        <button
+          class="btn-secondary"
+          onclick="scrollToSection('#how-it-works')"
+        >
           Learn Algorithms
         </button>
       </div>
@@ -76,36 +79,98 @@
       <div class="section-label fade-el">ALGORITHMS</div>
       <h2 class="section-title fade-el">How Each Algorithm Works</h2>
       <div class="algo-cards">
-        <div class="algo-card fade-el" onclick="selectAlgo('fifo'); scrollToSection('#simulator');">
+        <div
+          class="algo-card fade-el"
+          onclick="
+            selectAlgo('fifo');
+            scrollToSection('#simulator');
+          "
+        >
           <div class="algo-icon fifo-icon">📦</div>
           <h3>FIFO</h3>
-          <p>First In, First Out — the simplest strategy. The page that has been in memory the longest is replaced first, regardless of how recently or frequently it was used.</p>
+          <p>
+            First In, First Out — the simplest strategy. The page that has been
+            in memory the longest is replaced first, regardless of how recently
+            or frequently it was used.
+          </p>
           <span class="algo-tag tag-cyan">FIRST IN FIRST OUT</span>
         </div>
-        <div class="algo-card fade-el" onclick="selectAlgo('lru'); scrollToSection('#simulator');">
+        <div
+          class="algo-card fade-el"
+          onclick="
+            selectAlgo('lru');
+            scrollToSection('#simulator');
+          "
+        >
           <div class="algo-icon lru-icon">🔁</div>
           <h3>LRU</h3>
-          <p>Least Recently Used — replaces the page that hasn't been accessed for the longest time. Approximates the optimal algorithm using past usage patterns.</p>
+          <p>
+            Least Recently Used — replaces the page that hasn't been accessed
+            for the longest time. Approximates the optimal algorithm using past
+            usage patterns.
+          </p>
           <span class="algo-tag tag-purple">LEAST RECENTLY USED</span>
         </div>
-        <div class="algo-card fade-el" onclick="selectAlgo('optimal'); scrollToSection('#simulator');">
+        <div
+          class="algo-card fade-el"
+          onclick="
+            selectAlgo('optimal');
+            scrollToSection('#simulator');
+          "
+        >
           <div class="algo-icon opt-icon">🎯</div>
           <h3>Optimal</h3>
-          <p>The theoretical best — replaces the page that will not be used for the longest time in the future. Serves as a benchmark; impossible to implement in real OS without future knowledge.</p>
+          <p>
+            The theoretical best — replaces the page that will not be used for
+            the longest time in the future. Serves as a benchmark; impossible to
+            implement in real OS without future knowledge.
+          </p>
           <span class="algo-tag tag-green">BELADY'S ALGORITHM</span>
         </div>
-        <div class="algo-card fade-el" onclick="selectAlgo('clock'); scrollToSection('#simulator');">
-          <div class="algo-icon" style="color:var(--yellow)">🕐</div>
+        <div
+          class="algo-card fade-el"
+          onclick="
+            selectAlgo('clock');
+            scrollToSection('#simulator');
+          "
+        >
+          <div class="algo-icon" style="color: var(--yellow)">🕐</div>
           <h3>Clock</h3>
-          <p>Second Chance — frames are arranged in a circle with a clock hand. Pages get a second chance via a reference bit. The real algorithm used inside Linux and Windows kernels.</p>
-          <span class="algo-tag" style="background:rgba(255,204,0,0.15);color:var(--yellow)">SECOND CHANCE</span>
+          <p>
+            Second Chance — frames are arranged in a circle with a clock hand.
+            Pages get a second chance via a reference bit. The real algorithm
+            used inside Linux and Windows kernels.
+          </p>
+          <span
+            class="algo-tag"
+            style="background: rgba(255, 204, 0, 0.15); color: var(--yellow)"
+            >SECOND CHANCE</span
+          >
         </div>
         <!-- ── NEW: LFU Card ── -->
-        <div class="algo-card fade-el" onclick="selectAlgo('lfu'); scrollToSection('#simulator');">
-          <div class="algo-icon" style="color:var(--accent, #f97316)">📊</div>
+        <div
+          class="algo-card fade-el"
+          onclick="
+            selectAlgo('lfu');
+            scrollToSection('#simulator');
+          "
+        >
+          <div class="algo-icon" style="color: var(--accent, #f97316)">📊</div>
           <h3>LFU</h3>
-          <p>Least Frequently Used — tracks how many times each page has been accessed. On a fault, evicts the page with the lowest access count. Great for workloads with stable "hot" pages used repeatedly over time.</p>
-          <span class="algo-tag" style="background:rgba(249,115,22,0.15);color:var(--accent, #f97316)">LEAST FREQUENTLY USED</span>
+          <p>
+            Least Frequently Used — tracks how many times each page has been
+            accessed. On a fault, evicts the page with the lowest access count.
+            Great for workloads with stable "hot" pages used repeatedly over
+            time.
+          </p>
+          <span
+            class="algo-tag"
+            style="
+              background: rgba(249, 115, 22, 0.15);
+              color: var(--accent, #f97316);
+            "
+            >LEAST FREQUENTLY USED</span
+          >
         </div>
       </div>
     </section>
@@ -118,37 +183,92 @@
           <div class="panel-title">⚙ CONFIGURATION</div>
           <div class="form-group">
             <label class="form-label">Page Reference String</label>
-            <input type="text" id="pageInput" class="form-input" placeholder="7 0 1 2 0 3 0 4 2 3" value="7 0 1 2 0 3 0 4 2 3 0 3 2 1 2" />
-            <div class="input-hint">Separate page numbers with spaces (max 30)</div>
+            <input
+              type="text"
+              id="pageInput"
+              class="form-input"
+              placeholder="7 0 1 2 0 3 0 4 2 3"
+              value="7 0 1 2 0 3 0 4 2 3 0 3 2 1 2"
+            />
+            <div class="input-hint">
+              Separate page numbers with spaces (max 30)
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Number of Frames</label>
             <div class="slider-row">
-              <input type="range" id="frameSlider" class="slider" min="1" max="8" value="3" oninput="updateFrameVal()" />
+              <input
+                type="range"
+                id="frameSlider"
+                class="slider"
+                min="1"
+                max="8"
+                value="3"
+                oninput="updateFrameVal()"
+              />
               <span class="slider-val" id="frameVal">3</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Algorithm</label>
             <div class="algo-buttons">
-              <button class="algo-btn active" id="btn-fifo" onclick="selectAlgo('fifo')">FIFO</button>
-              <button class="algo-btn" id="btn-lru" onclick="selectAlgo('lru')">LRU</button>
-              <button class="algo-btn" id="btn-optimal" onclick="selectAlgo('optimal')">OPTIMAL</button>
-              <button class="algo-btn" id="btn-clock" onclick="selectAlgo('clock')">CLOCK</button>
+              <button
+                class="algo-btn active"
+                id="btn-fifo"
+                onclick="selectAlgo('fifo')"
+              >
+                FIFO
+              </button>
+              <button class="algo-btn" id="btn-lru" onclick="selectAlgo('lru')">
+                LRU
+              </button>
+              <button
+                class="algo-btn"
+                id="btn-optimal"
+                onclick="selectAlgo('optimal')"
+              >
+                OPTIMAL
+              </button>
+              <button
+                class="algo-btn"
+                id="btn-clock"
+                onclick="selectAlgo('clock')"
+              >
+                CLOCK
+              </button>
               <!-- ── NEW: LFU Button ── -->
-              <button class="algo-btn" id="btn-lfu" onclick="selectAlgo('lfu')">LFU</button>
+              <button class="algo-btn" id="btn-lfu" onclick="selectAlgo('lfu')">
+                LFU
+              </button>
             </div>
           </div>
-          <button id="runBtn" onclick="runSimulation()">▶ RUN SIMULATION</button>
-          <button id="compareBtn" onclick="runComparison()">⇄ COMPARE ALL ALGORITHMS</button>
+          <button id="runBtn" onclick="runSimulation()">
+            ▶ RUN SIMULATION
+          </button>
+          <button id="compareBtn" onclick="runComparison()">
+            ⇄ COMPARE ALL ALGORITHMS
+          </button>
           <div class="playback" id="playbackCtrl" style="display: none">
-            <button class="pb-btn" onclick="stepBack()" title="Step Back">⟵</button>
-            <button class="pb-btn" id="playPauseBtn" onclick="togglePlay()" title="Play/Pause">▶</button>
-            <button class="pb-btn" onclick="stepForward()" title="Step Forward">⟶</button>
+            <button class="pb-btn" onclick="stepBack()" title="Step Back">
+              ⟵
+            </button>
+            <button
+              class="pb-btn"
+              id="playPauseBtn"
+              onclick="togglePlay()"
+              title="Play/Pause"
+            >
+              ▶
+            </button>
+            <button class="pb-btn" onclick="stepForward()" title="Step Forward">
+              ⟶
+            </button>
             <button class="pb-btn" onclick="resetSim()" title="Reset">↺</button>
             <div class="pb-speed">
               <button class="speed-btn" onclick="setSpeed(2000)">0.5×</button>
-              <button class="speed-btn active" onclick="setSpeed(1000)">1×</button>
+              <button class="speed-btn active" onclick="setSpeed(1000)">
+                1×
+              </button>
               <button class="speed-btn" onclick="setSpeed(400)">2×</button>
             </div>
           </div>
@@ -159,7 +279,15 @@
             <div class="timeline-label">📍 Page Reference Timeline</div>
             <div class="timeline-scroll">
               <div class="timeline-track" id="timelineTrack">
-                <div class="timeline-item" style="color: var(--text-muted); font-size: 12px; width: auto; padding: 0 16px;">
+                <div
+                  class="timeline-item"
+                  style="
+                    color: var(--text-muted);
+                    font-size: 12px;
+                    width: auto;
+                    padding: 0 16px;
+                  "
+                >
                   Configure &amp; run simulation to see the timeline
                 </div>
               </div>
@@ -167,7 +295,8 @@
           </div>
           <div class="live-stats">
             <div class="live-stat stat-faults">
-              <span class="stat-val" id="liveFaults">—</span><span class="stat-label">Page Faults</span>
+              <span class="stat-val" id="liveFaults">—</span
+              ><span class="stat-label">Page Faults</span>
             </div>
             <div class="live-stat stat-hits">
               <span class="stat-val" id="liveHits">—</span>
@@ -181,7 +310,10 @@
           <div class="frames-panel">
             <div class="frames-header">
               <div class="frames-label">🧱 Memory Frames</div>
-              <div class="step-counter">Step <span id="stepNum">0</span> / <span id="totalSteps">0</span></div>
+              <div class="step-counter">
+                Step <span id="stepNum">0</span> /
+                <span id="totalSteps">0</span>
+              </div>
             </div>
             <div class="frames-row" id="framesRow">
               <div class="welcome-state">
@@ -198,9 +330,22 @@
             </div>
           </div>
           <div class="table-panel" id="tablePanel" style="display: none">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 16px;
+              "
+            >
               <div class="timeline-label">📋 Step-by-Step Trace</div>
-              <button class="btn-secondary" style="padding: 6px 14px; font-size: 11px" onclick="toggleTable()">Toggle</button>
+              <button
+                class="btn-secondary"
+                style="padding: 6px 14px; font-size: 11px"
+                onclick="toggleTable()"
+              >
+                Toggle
+              </button>
             </div>
             <div class="table-scroll">
               <table>
@@ -225,13 +370,33 @@
       <div class="section-label fade-el">RESULTS</div>
       <h2 class="section-title fade-el">Algorithm Comparison</h2>
       <div class="compare-grid" id="compareGrid">
-        <div class="compare-card fade-el" id="compareEmptyState" style="grid-column: 1/-1; text-align: center; padding: 60px">
+        <div
+          class="compare-card fade-el"
+          id="compareEmptyState"
+          style="grid-column: 1/-1; text-align: center; padding: 60px"
+        >
           <div style="font-size: 48px; margin-bottom: 16px">📊</div>
-          <h3 style="font-family: var(--font-display); color: var(--text)">Compare All Algorithms</h3>
-          <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.9rem; margin-bottom: 28px;">
-            Run FIFO, LRU, Optimal, Clock, and LFU side-by-side and see which wins
+          <h3 style="font-family: var(--font-display); color: var(--text)">
+            Compare All Algorithms
+          </h3>
+          <p
+            style="
+              color: var(--text-dim);
+              margin-top: 8px;
+              font-size: 0.9rem;
+              margin-bottom: 28px;
+            "
+          >
+            Run FIFO, LRU, Optimal, Clock, and LFU side-by-side and see which
+            wins
           </p>
-          <button class="btn-primary" onclick="runComparison()" style="margin: 0 auto">⇄ Run Comparison Now</button>
+          <button
+            class="btn-primary"
+            onclick="runComparison()"
+            style="margin: 0 auto"
+          >
+            ⇄ Run Comparison Now
+          </button>
         </div>
       </div>
       <div class="bar-chart" id="barChart" style="display: none">
@@ -241,8 +406,8 @@
     </section>
 
     <footer>
-      <span>MemOS</span> — Interactive OS Memory Simulator &nbsp;|&nbsp; Built
-      with Node.js + Express &nbsp;|&nbsp; <span>LPU 🚀</span>
+      <p><strong>MemOS</strong> — Visualize. Simulate. Understand.</p>
+      <p>© 2026 MemOS. All rights reserved.</p>
     </footer>
 
     <div id="toast"></div>
