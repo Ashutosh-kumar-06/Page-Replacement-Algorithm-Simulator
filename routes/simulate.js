@@ -10,7 +10,7 @@
  *   {
  *     pages:     number[]   — e.g. [7, 0, 1, 2, 0, 3]
  *     frames:    number     — e.g. 3  (must be 1–8)
- *     algorithm: string     — "fifo" | "lru" | "optimal"
+ *     algorithm: string     — "fifo" | "lru" | "optimal" | "clock" | "lfu"
  *   }
  *
  * RESPONSE (JSON):
@@ -28,10 +28,12 @@
 const fifo    = require('../algorithms/fifo');
 const lru     = require('../algorithms/lru');
 const optimal = require('../algorithms/optimal');
-const clock = require('../algorithms/clock');
+const clock   = require('../algorithms/clock');
+const lfu     = require('../algorithms/lfu');  // ── NEW: LFU algorithm
+
 // Map algorithm name strings → actual functions.
-// This makes it easy to add a new algorithm later: just add one line here.
-const ALGORITHMS = { fifo, lru, optimal , clock};
+// To add a new algorithm: just add one line here.
+const ALGORITHMS = { fifo, lru, optimal, clock, lfu };
 
 /**
  * Express route handler — called when a POST request hits /api/simulate.
@@ -58,12 +60,16 @@ function simulateRoute(req, res) {
     return res.status(400).json({ error: `Unknown algorithm: ${algorithm}` });
   }
 
-  // Run the algorithm — returns { steps, faults, hits }.
+  // Run the algorithm — returns { steps, totalFaults, totalHits }.
   const result = run(pages, frames);
 
+  // Normalise field names — lfu returns totalFaults/totalHits,
+  // older algorithms return faults/hits. Support both shapes.
+  const faults = result.totalFaults ?? result.faults;
+  const hits   = result.totalHits   ?? result.hits;
+
   // Send the full result back to the browser.
-  // The spread (...result) merges steps/faults/hits into the response object.
-  res.json({ algorithm, frameCount: frames, pages, ...result });
+  res.json({ algorithm, frameCount: frames, pages, steps: result.steps, faults, hits });
 }
 
 module.exports = simulateRoute;
