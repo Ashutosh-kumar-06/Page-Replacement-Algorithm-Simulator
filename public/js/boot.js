@@ -17,88 +17,129 @@
   const terminal = document.getElementById("boot-terminal");
   const barFill = document.getElementById("boot-bar-fill");
   const barPct = document.getElementById("boot-bar-pct");
-  const subtitleMessages = [
-    "Initializing memory engine...",
-    "Loading algorithms...",
-    "Preparing simulation frames...",
-    "Optimizing performance...",
-  ];
+  const subtitleMessages = prefersReducedMotion
+    ? ["Initializing simulator..."]
+    : [
+        "Initializing simulator...",
+        "Loading algorithms...",
+        "Preparing simulation frames...",
+      ];
 
-  const logLines = [
-    { text: "> Booting Page Replacement Engine...", delay: 0 },
-    { text: "> Loading FIFO module...", delay: 540 },
-    { text: "> Loading LRU module...", delay: 980 },
-    { text: "> Loading Optimal module...", delay: 1320 },
-    { text: "> Loading Clock and LFU modules...", delay: 1640 },
-    { text: "> Ready.", delay: 1980 },
-  ];
-
-  const reducedLogLines = [
-    { text: "> Initializing simulator...", delay: 0 },
-    { text: "> Ready.", delay: 120 },
-  ];
+  const logLines = prefersReducedMotion
+    ? [
+        { text: "> Booting memory management system...", delay: 0 },
+        { text: "> Ready.", delay: 100 },
+      ]
+    : [
+        { text: "> Booting memory management system...", delay: 0 },
+        { text: "> Loading FIFO module...", delay: 220 },
+        { text: "> Loading LRU module...", delay: 440 },
+        { text: "> Loading Optimal module...", delay: 660 },
+        { text: "> Initializing frames...", delay: 880 },
+      ];
 
   const timing = prefersReducedMotion
     ? {
         initialDelay: 0,
         progressDuration: 180,
-        exitDuration: 160,
+        exitDuration: 220,
         postProgressDelay: 20,
+        overlapDelay: 0,
       }
     : {
-        initialDelay: 80,
-        progressDuration: 950,
-        exitDuration: 320,
-        postProgressDelay: 50,
+        initialDelay: 60,
+        progressDuration: 1450,
+        exitDuration: 980,
+        postProgressDelay: 80,
+        overlapDelay: 0,
       };
 
-  const activeLogLines = prefersReducedMotion ? reducedLogLines : logLines;
   let hasRevealed = false;
-  let subtitleTimer = null;
 
-  function cycleSubtitle() {
-    let idx = 0;
+  function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function progressLabel(percent) {
+    const blocks = 10;
+    const filled = Math.round((percent / 100) * blocks);
+    const bar = `${"█".repeat(filled)}${"░".repeat(blocks - filled)}`;
+    return `[${bar}] ${percent}%`;
+  }
+
+  async function typeText(el, text, charDelay) {
+    if (!el) return;
+    el.textContent = "";
+    for (let i = 0; i < text.length; i++) {
+      if (hasRevealed) return;
+      el.textContent += text[i];
+      await wait(charDelay);
+    }
+  }
+
+  async function animateSubtitle() {
     if (!subtitle) return;
+    subtitle.classList.add("is-typing");
 
-    subtitle.textContent = subtitleMessages[idx];
-    subtitle.style.opacity = "1";
+    if (prefersReducedMotion) {
+      subtitle.textContent = subtitleMessages[0];
+      return;
+    }
 
-    if (prefersReducedMotion) return;
-
-    subtitleTimer = setInterval(() => {
+    let idx = 0;
+    while (!hasRevealed) {
+      await typeText(subtitle, subtitleMessages[idx], 26);
+      await wait(220);
       idx = (idx + 1) % subtitleMessages.length;
-      subtitle.style.opacity = "0";
-      setTimeout(() => {
-        subtitle.textContent = subtitleMessages[idx];
-        subtitle.style.opacity = "1";
-      }, 140);
-    }, 1000);
+    }
   }
 
   function typeLines() {
     if (!terminal) return;
     terminal.innerHTML = "";
 
-    activeLogLines.forEach(({ text, delay }) => {
+    logLines.forEach(({ text, delay }) => {
       setTimeout(() => {
+        if (hasRevealed) return;
         const line = document.createElement("div");
         line.className = "boot-line";
-        line.textContent = text;
         terminal.appendChild(line);
-        terminal.scrollTop = terminal.scrollHeight;
+
+        typeText(line, text, prefersReducedMotion ? 4 : 18);
       }, delay);
     });
   }
 
   function animateBar() {
     const startedAt = performance.now();
+    const holdAt = prefersReducedMotion ? 100 : 78;
+    const holdStart = prefersReducedMotion ? 0 : 650;
+    const holdDuration = prefersReducedMotion ? 0 : 180;
+    const endRampDuration = prefersReducedMotion
+      ? timing.progressDuration
+      : 420;
 
     function tick(now) {
       const elapsed = now - startedAt;
-      const pct = Math.min(100, (elapsed / timing.progressDuration) * 100);
+      let pct = 100;
+
+      if (prefersReducedMotion) {
+        pct = Math.min(100, (elapsed / timing.progressDuration) * 100);
+      } else if (elapsed < holdStart) {
+        pct = (elapsed / holdStart) * holdAt;
+      } else if (elapsed < holdStart + holdDuration) {
+        pct = holdAt;
+      } else if (elapsed < holdStart + holdDuration + endRampDuration) {
+        pct =
+          holdAt +
+          ((elapsed - holdStart - holdDuration) / endRampDuration) *
+            (100 - holdAt);
+      }
+
+      pct = Math.min(100, pct);
       const wholePct = Math.floor(pct);
       if (barFill) barFill.style.width = `${wholePct}%`;
-      if (barPct) barPct.textContent = `${wholePct}%`;
+      if (barPct) barPct.textContent = progressLabel(wholePct);
 
       if (pct < 100) requestAnimationFrame(tick);
       else setTimeout(reveal, timing.postProgressDelay);
@@ -112,25 +153,27 @@
     hasRevealed = true;
 
     screen.classList.add("boot-exit");
-    if (subtitleTimer) clearInterval(subtitleTimer);
+    subtitle?.classList.remove("is-typing");
+
+    // Reveal UI behind the boot curtain immediately as it starts sliding away.
+    document.body.classList.remove("preboot");
+    document.body.classList.add("site-ready");
+
+    if (typeof initScrollObserver === "function") initScrollObserver();
+    if (
+      !localStorage.getItem("memos_tour_done") &&
+      typeof startTour === "function"
+    )
+      startTour();
 
     setTimeout(() => {
       screen.style.display = "none";
-      document.body.classList.remove("preboot");
-      document.body.classList.add("site-ready");
-
-      if (typeof initScrollObserver === "function") initScrollObserver();
-      if (
-        !localStorage.getItem("memos_tour_done") &&
-        typeof startTour === "function"
-      )
-        startTour();
     }, timing.exitDuration);
   }
 
   function run() {
     setTimeout(() => {
-      cycleSubtitle();
+      animateSubtitle();
       typeLines();
       animateBar();
     }, timing.initialDelay);
