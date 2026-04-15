@@ -8,15 +8,22 @@
   </head>
   <body>
     <div id="boot-screen">
+      <div id="boot-aurora"></div>
+      <div id="boot-grid"></div>
       <div id="boot-scanlines"></div>
+      <div id="boot-flash-sweep"></div>
       <div id="boot-content">
-        <div id="boot-logo">MEM<span>OS</span></div>
-        <div id="boot-version">v2.0 — Memory Management Simulator</div>
+        <div id="boot-mark" aria-hidden="true">⚙</div>
+        <div id="boot-title">Page Replacement Simulator</div>
+        <div id="boot-subtitle">Initializing memory engine...</div>
         <div id="boot-terminal"></div>
-        <div id="boot-frames-row"></div>
-        <div id="boot-fault-flash"></div>
+        <div id="boot-dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
         <div id="boot-bar-wrap">
-          <div id="boot-bar-fill"></div>
+          <div id="boot-bar-track">
+            <div id="boot-bar-fill"></div>
+          </div>
           <div id="boot-bar-pct">0%</div>
         </div>
       </div>
@@ -350,13 +357,7 @@
             <div class="table-scroll">
               <table>
                 <thead>
-                  <tr>
-                    <th>Step</th>
-                    <th>Page</th>
-                    <th id="tableFrameHeaders"></th>
-                    <th>Status</th>
-                    <th>Replaced</th>
-                  </tr>
+                  <tr id="tableHeadRow"></tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
               </table>

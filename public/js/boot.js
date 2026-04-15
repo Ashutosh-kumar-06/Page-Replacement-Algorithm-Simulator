@@ -4,80 +4,139 @@
  * after reveal — both are guaranteed loaded before this file runs.
  */
 (function Boot() {
-  const screen     = document.getElementById('boot-screen');
-  const terminal   = document.getElementById('boot-terminal');
-  const framesRow  = document.getElementById('boot-frames-row');
-  const faultFlash = document.getElementById('boot-fault-flash');
-  const barFill    = document.getElementById('boot-bar-fill');
-  const barPct     = document.getElementById('boot-bar-pct');
+  document.body?.classList.add("preboot");
 
-  const LINES = [
-    { t:'> MEMOS OS v2.0 — Memory Management Unit', d:0,    c:'#00c8ff' },
-    { t:'> Booting kernel...',                       d:300,  c:'#94a3b8' },
-    { t:'  [████████████████] kernel         OK',   d:600,  c:'#00ff88' },
-    { t:'> Initializing FIFO page handler... OK',   d:900,  c:'#00ff88' },
-    { t:'> Initializing LRU algorithm...     OK',   d:1150, c:'#00ff88' },
-    { t:'> Initializing Optimal predictor... OK',   d:1380, c:'#00ff88' },
-    { t:'> Initializing Clock handler...     OK',   d:1560, c:'#ffcc00' },
-    { t:'> Allocating 3 memory frames...',           d:1600, c:'#ffcc00' },
+  const screen = document.getElementById("boot-screen");
+  if (!screen) return;
+
+  const prefersReducedMotion =
+    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  if (prefersReducedMotion) document.body?.classList.add("reduced-motion");
+
+  const subtitle = document.getElementById("boot-subtitle");
+  const terminal = document.getElementById("boot-terminal");
+  const barFill = document.getElementById("boot-bar-fill");
+  const barPct = document.getElementById("boot-bar-pct");
+  const subtitleMessages = [
+    "Initializing memory engine...",
+    "Loading algorithms...",
+    "Preparing simulation frames...",
+    "Optimizing performance...",
   ];
 
-  function typeLines() {
-    LINES.forEach(l => setTimeout(() => {
-      const d = document.createElement('div');
-      d.className = 'boot-line'; d.style.color = l.c; d.textContent = l.t;
-      terminal.appendChild(d); terminal.scrollTop = terminal.scrollHeight;
-    }, l.d));
+  const logLines = [
+    { text: "> Booting Page Replacement Engine...", delay: 0 },
+    { text: "> Loading FIFO module...", delay: 540 },
+    { text: "> Loading LRU module...", delay: 980 },
+    { text: "> Loading Optimal module...", delay: 1320 },
+    { text: "> Loading Clock and LFU modules...", delay: 1640 },
+    { text: "> Ready.", delay: 1980 },
+  ];
+
+  const reducedLogLines = [
+    { text: "> Initializing simulator...", delay: 0 },
+    { text: "> Ready.", delay: 120 },
+  ];
+
+  const timing = prefersReducedMotion
+    ? {
+        initialDelay: 0,
+        progressDuration: 180,
+        exitDuration: 160,
+        postProgressDelay: 20,
+      }
+    : {
+        initialDelay: 80,
+        progressDuration: 950,
+        exitDuration: 320,
+        postProgressDelay: 50,
+      };
+
+  const activeLogLines = prefersReducedMotion ? reducedLogLines : logLines;
+  let hasRevealed = false;
+  let subtitleTimer = null;
+
+  function cycleSubtitle() {
+    let idx = 0;
+    if (!subtitle) return;
+
+    subtitle.textContent = subtitleMessages[idx];
+    subtitle.style.opacity = "1";
+
+    if (prefersReducedMotion) return;
+
+    subtitleTimer = setInterval(() => {
+      idx = (idx + 1) % subtitleMessages.length;
+      subtitle.style.opacity = "0";
+      setTimeout(() => {
+        subtitle.textContent = subtitleMessages[idx];
+        subtitle.style.opacity = "1";
+      }, 140);
+    }, 1000);
   }
 
-  function animateFrames() {
-    framesRow.innerHTML = '';
-    for (let i = 0; i < 3; i++) {
-      const f = document.createElement('div');
-      f.className = 'boot-frame'; f.id = `bf-${i}`;
-      f.innerHTML = `<span class="bf-label">F${i+1}</span><span class="bf-val">—</span>`;
-      framesRow.appendChild(f);
+  function typeLines() {
+    if (!terminal) return;
+    terminal.innerHTML = "";
+
+    activeLogLines.forEach(({ text, delay }) => {
       setTimeout(() => {
-        f.classList.add('active');
-        let t = 0;
-        const iv = setInterval(() => {
-          f.querySelector('.bf-val').textContent = Math.floor(Math.random()*9);
-          if (++t > 14) { clearInterval(iv); f.querySelector('.bf-val').textContent = i+1; f.classList.add('loaded'); }
-        }, 55);
-      }, 1950 + i*260);
-    }
+        const line = document.createElement("div");
+        line.className = "boot-line";
+        line.textContent = text;
+        terminal.appendChild(line);
+        terminal.scrollTop = terminal.scrollHeight;
+      }, delay);
+    });
   }
 
   function animateBar() {
-    let pct = 0;
-    const iv = setInterval(() => {
-      pct += 1.1; if (pct >= 100) { pct = 100; clearInterval(iv); }
-      barFill.style.width = pct + '%'; barPct.textContent = Math.floor(pct) + '%';
-    }, 28);
-  }
+    const startedAt = performance.now();
 
-  function faultSequence() {
-    faultFlash.textContent = '⚠ PAGE FAULT DETECTED'; faultFlash.style.color = '#ff3366'; faultFlash.classList.add('active');
-    setTimeout(() => faultFlash.classList.remove('active'), 650);
-    setTimeout(() => { faultFlash.textContent = '✓ SYSTEM READY'; faultFlash.style.color = '#00ff88'; faultFlash.classList.add('active'); }, 950);
+    function tick(now) {
+      const elapsed = now - startedAt;
+      const pct = Math.min(100, (elapsed / timing.progressDuration) * 100);
+      const wholePct = Math.floor(pct);
+      if (barFill) barFill.style.width = `${wholePct}%`;
+      if (barPct) barPct.textContent = `${wholePct}%`;
+
+      if (pct < 100) requestAnimationFrame(tick);
+      else setTimeout(reveal, timing.postProgressDelay);
+    }
+
+    requestAnimationFrame(tick);
   }
 
   function reveal() {
-    screen.style.transition = 'opacity .7s ease'; screen.style.opacity = '0';
+    if (hasRevealed) return;
+    hasRevealed = true;
+
+    screen.classList.add("boot-exit");
+    if (subtitleTimer) clearInterval(subtitleTimer);
+
     setTimeout(() => {
-      screen.style.display = 'none';
-      document.body.classList.add('site-ready');
-      if (typeof initScrollObserver === 'function') initScrollObserver();
-      if (!localStorage.getItem('memos_tour_done') && typeof startTour === 'function') startTour();
-    }, 700);
+      screen.style.display = "none";
+      document.body.classList.remove("preboot");
+      document.body.classList.add("site-ready");
+
+      if (typeof initScrollObserver === "function") initScrollObserver();
+      if (
+        !localStorage.getItem("memos_tour_done") &&
+        typeof startTour === "function"
+      )
+        startTour();
+    }, timing.exitDuration);
   }
 
   function run() {
-    typeLines(); animateFrames(); animateBar();
-    setTimeout(faultSequence, 2600);
-    setTimeout(reveal,        3900);
+    setTimeout(() => {
+      cycleSubtitle();
+      typeLines();
+      animateBar();
+    }, timing.initialDelay);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", run);
   else run();
 })();

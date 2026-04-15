@@ -26,11 +26,11 @@
  *   }
  */
 
-const fifo    = require('../algorithms/fifo');
-const lru     = require('../algorithms/lru');
-const optimal = require('../algorithms/optimal');
-const clock   = require('../algorithms/clock');
-const lfu     = require('../algorithms/lfu');  // ── NEW: LFU algorithm
+const fifo = require("../algorithms/fifo");
+const lru = require("../algorithms/lru");
+const optimal = require("../algorithms/optimal");
+const clock = require("../algorithms/clock");
+const lfu = require("../algorithms/lfu"); // ── NEW: LFU algorithm
 
 /**
  * @param {import('express').Request}  req
@@ -38,42 +38,65 @@ const lfu     = require('../algorithms/lfu');  // ── NEW: LFU algorithm
  */
 function compareRoute(req, res) {
   const { pages, frames } = req.body;
+  const frameCount = Number(frames);
 
   // Basic validation — both fields are required.
-  if (!Array.isArray(pages) || !frames) {
-    return res.status(400).json({ error: 'Invalid input' });
+  if (!Array.isArray(pages) || !Number.isInteger(frameCount)) {
+    return res
+      .status(400)
+      .json({
+        error:
+          "Invalid input: pages must be an array and frames must be an integer",
+      });
   }
 
-  // Run all algorithms on the same pages + frames.
-  const runs = {
-    fifo:    fifo(pages, frames),
-    lru:     lru(pages, frames),
-    optimal: optimal(pages, frames),
-    clock:   clock(pages, frames),
-    lfu:     lfu(pages, frames),   // ── NEW
-  };
+  if (frameCount < 1 || frameCount > 8) {
+    return res
+      .status(400)
+      .json({ error: "Frame count must be between 1 and 8" });
+  }
 
-  // Build a compact summary for each algorithm.
-  // Normalise field names — lfu returns totalFaults/totalHits,
-  // older algorithms return faults/hits. Support both shapes.
-  const results = {};
-  for (const [key, r] of Object.entries(runs)) {
-    const faults = r.totalFaults ?? r.faults;
-    const hits   = r.totalHits   ?? r.hits;
-    results[key] = {
-      faults,
-      hits,
-      // efficiency = hit rate as a percentage string, e.g. "73.3"
-      efficiency: ((hits / pages.length) * 100).toFixed(1),
+  if (pages.length < 1 || pages.length > 30) {
+    return res.status(400).json({ error: "Page sequence must be 1-30 pages" });
+  }
+
+  try {
+    // Run all algorithms on the same pages + frames.
+    const runs = {
+      fifo: fifo(pages, frameCount),
+      lru: lru(pages, frameCount),
+      optimal: optimal(pages, frameCount),
+      clock: clock(pages, frameCount),
+      lfu: lfu(pages, frameCount),
     };
+
+    // Build a compact summary for each algorithm.
+    // Normalise field names — lfu returns totalFaults/totalHits,
+    // older algorithms return faults/hits. Support both shapes.
+    const results = {};
+    for (const [key, r] of Object.entries(runs)) {
+      const faults = r.totalFaults ?? r.faults;
+      const hits = r.totalHits ?? r.hits;
+      results[key] = {
+        faults,
+        hits,
+        // efficiency = hit rate as a percentage string, e.g. "73.3"
+        efficiency: ((hits / pages.length) * 100).toFixed(1),
+      };
+    }
+
+    // Find the winner — the algorithm with the FEWEST page faults.
+    // If there is a tie, the first one found wins.
+    const minFaults = Math.min(...Object.values(results).map((r) => r.faults));
+    const winner = Object.keys(results).find(
+      (k) => results[k].faults === minFaults,
+    );
+
+    res.json({ results, winner, total: pages.length, frames: frameCount });
+  } catch (error) {
+    console.error("compareRoute error:", error);
+    res.status(500).json({ error: "Failed to run algorithm comparison" });
   }
-
-  // Find the winner — the algorithm with the FEWEST page faults.
-  // If there is a tie, the first one found wins.
-  const minFaults = Math.min(...Object.values(results).map(r => r.faults));
-  const winner    = Object.keys(results).find(k => results[k].faults === minFaults);
-
-  res.json({ results, winner, total: pages.length, frames });
 }
 
 module.exports = compareRoute;

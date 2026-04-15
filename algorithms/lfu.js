@@ -39,61 +39,62 @@
  */
 function lfu(pages, frameCount) {
   // ─── State ────────────────────────────────────────────────────────────────
-  const frames     = [];          // pages currently in memory
-  const frequency  = new Map();   // page → access count
-  const loadOrder  = new Map();   // page → index (position) when loaded, for tie-breaking
+  const frames = new Array(frameCount).fill(null); // pages currently in memory
+  const frequency = new Map(); // page → access count
+  const loadOrder = new Map(); // page → index (position) when loaded, for tie-breaking
 
   let totalFaults = 0;
-  let totalHits   = 0;
-  let loadCounter = 0;            // monotonically increasing — tracks insertion order
+  let totalHits = 0;
+  let loadCounter = 0; // monotonically increasing — tracks insertion order
 
-  const steps = [];               // one entry per reference, for the simulator UI
+  const steps = []; // one entry per reference, for the simulator UI
 
   // ─── Process each page reference ─────────────────────────────────────────
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
-    let   fault = false;
-    let   evictedPage = null;
+    let fault = false;
+    let replaced = null;
+    let replaceIdx = -1;
+    let hitIdx = -1;
 
     if (frames.includes(page)) {
       // ── HIT: page is already in memory ──────────────────────────────────
       totalHits++;
       frequency.set(page, frequency.get(page) + 1);
-
+      hitIdx = frames.indexOf(page);
     } else {
       // ── MISS: page fault ─────────────────────────────────────────────────
       fault = true;
       totalFaults++;
 
-      if (frames.length < frameCount) {
+      const emptyIdx = frames.indexOf(null);
+      if (emptyIdx !== -1) {
         // There is a free frame — just load the page.
-        frames.push(page);
-
+        replaceIdx = emptyIdx;
+        frames[replaceIdx] = page;
       } else {
         // All frames are occupied — find the LFU victim.
         // Among pages with equal frequency, pick the one loaded earliest (lowest loadOrder).
-        let victimPage  = null;
-        let minFreq     = Infinity;
-        let minOrder    = Infinity;
+        let victimPage = null;
+        let minFreq = Infinity;
+        let minOrder = Infinity;
 
-        for (const f of frames) {
-          const freq  = frequency.get(f);
+        for (let fi = 0; fi < frames.length; fi++) {
+          const f = frames[fi];
+          const freq = frequency.get(f);
           const order = loadOrder.get(f);
 
-          if (
-            freq < minFreq ||
-            (freq === minFreq && order < minOrder)
-          ) {
-            minFreq    = freq;
-            minOrder   = order;
+          if (freq < minFreq || (freq === minFreq && order < minOrder)) {
+            minFreq = freq;
+            minOrder = order;
             victimPage = f;
           }
         }
 
         // Evict the victim.
-        evictedPage = victimPage;
-        const victimIndex = frames.indexOf(victimPage);
-        frames[victimIndex] = page;
+        replaced = victimPage;
+        replaceIdx = frames.indexOf(victimPage);
+        frames[replaceIdx] = page;
 
         // Clean up tracking for the evicted page.
         frequency.delete(victimPage);
@@ -106,14 +107,27 @@ function lfu(pages, frameCount) {
     }
 
     // ── Record this step for the simulator ──────────────────────────────────
+    const lfuCounts = {};
+    frames.forEach((f, fi) => {
+      if (f !== null) lfuCounts[fi] = frequency.get(f) ?? 0;
+    });
+
+    const reason = fault
+      ? replaced !== null
+        ? `Page ${replaced} had the lowest frequency and was replaced by ${page}`
+        : `Loaded into empty frame F${replaceIdx + 1}`
+      : `Page ${page} hit in F${hitIdx + 1}; frequency increased to ${frequency.get(page)}`;
+
     steps.push({
+      step: i + 1,
       page,
-      frames:      [...frames],          // snapshot of current frame state
+      frames: [...frames],
       fault,
-      evicted:     evictedPage,
-      frequencies: Object.fromEntries(   // snapshot of all current frequencies
-        frames.map(f => [f, frequency.get(f) ?? 0])
-      ),
+      replaced,
+      replaceIdx,
+      hitIdx,
+      lfuCounts,
+      reason,
     });
   }
 

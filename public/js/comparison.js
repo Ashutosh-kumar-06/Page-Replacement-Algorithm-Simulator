@@ -50,9 +50,15 @@ async function runComparison() {
     return;
   }
 
+  // Move the user to the results section immediately after requesting compare.
+  scrollToSection("#comparison");
+
   showToast("📊 Comparing all algorithms...");
   const emptyState = document.getElementById("compareEmptyState");
   if (emptyState) emptyState.style.display = "none";
+
+  const compareBtn = document.getElementById("compareBtn");
+  if (compareBtn) compareBtn.disabled = true;
 
   try {
     const res = await fetch(`${API}/api/compare`, {
@@ -60,19 +66,41 @@ async function runComparison() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ pages, frames }),
     });
-    renderComparison(await res.json(), pages.length);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showToast(`❌ ${err.error || "Failed to compare algorithms"}`);
+      if (emptyState) emptyState.style.display = "block";
+      return;
+    }
+
+    const data = await res.json();
+    renderComparison(data, pages.length);
   } catch (e) {
     showToast("❌ Server error. Is the Node.js server running?");
+    if (emptyState) emptyState.style.display = "block";
     console.error(e);
+  } finally {
+    if (compareBtn) compareBtn.disabled = false;
   }
 }
 
 function renderComparison(data, total) {
+  if (!data || !data.results) {
+    showToast("❌ Invalid comparison response from server");
+    return;
+  }
+
   const grid = document.getElementById("compareGrid");
   grid.innerHTML = "";
-  const maxFaults = Math.max(
-    ...ALGO_META.map((a) => data.results[a.key].faults),
-  );
+  const hasAllAlgorithms = ALGO_META.every((a) => data.results[a.key]);
+  if (!hasAllAlgorithms) {
+    showToast("❌ Comparison data is incomplete");
+    return;
+  }
+
+  const maxFaults =
+    Math.max(...ALGO_META.map((a) => data.results[a.key].faults)) || 1;
 
   ALGO_META.forEach((a, i) => {
     const r = data.results[a.key];
@@ -117,6 +145,7 @@ function renderBarChart(data, maxFaults) {
   bc.style.display = "block";
   const chartBars = document.getElementById("chartBars");
   chartBars.innerHTML = "";
+  const denom = maxFaults || 1;
   ALGO_META.forEach((a, i) => {
     const r = data.results[a.key];
     const row = document.createElement("div");
@@ -130,7 +159,7 @@ function renderBarChart(data, maxFaults) {
     setTimeout(
       () => {
         const fill = document.getElementById(`cb-${a.key}`);
-        fill.style.width = `${(r.faults / maxFaults) * 100}%`;
+        fill.style.width = `${(r.faults / denom) * 100}%`;
         fill.textContent = `${r.faults} faults`;
       },
       400 + i * 150,
